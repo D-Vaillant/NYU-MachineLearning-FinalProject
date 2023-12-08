@@ -13,7 +13,7 @@ if torch.backends.mps.is_available():
     DEVICE = torch.device('mps')
 else:
     using_silicon = False
-    DEVICE = torch.device('cpu')
+    DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 # Filter by title.
 holdouts = {
