@@ -12,7 +12,6 @@ import math
 from config import DEVICE, using_silicon, holdouts, WINDOW_SIZE
 from datafactory import make_data_from_dataset, get_symbols
 
-from main import get_first_dataset
 from models import SimpleModel, TransformerModel
 
 VOCAB_SIZE = 16
