@@ -27,7 +27,9 @@ VOCAB_SIZE = 16
 
 def simple_trainer(model, X, y, n_epochs, batch_size):
     # Shuffle set to false due to M2 bug.
-    loader = data.DataLoader(data.TensorDataset(X, y), shuffle=not using_silicon, batch_size=batch_size)
+    loader = data.DataLoader(data.TensorDataset(X, y),
+                             generator=torch.Generator(device=DEVICE),
+                             shuffle=not using_silicon, batch_size=batch_size)
     best_model = None
     best_loss = np.inf
     for epoch in range(n_epochs):
