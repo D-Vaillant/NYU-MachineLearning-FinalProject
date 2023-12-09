@@ -45,3 +45,5 @@ if __name__ == '__main__':
           prediction = best_model(x)
           if y == prediction:
               total_correct += 1
+
+print(f"Accuracy, in the end: {total_correct}/{total_values}, {total_correct/total_values:.2%}")

@@ -54,7 +54,7 @@ def simple_trainer(model, X, y, n_epochs, batch_size):
                 )
             print("Epoch %d: Cross-entropy: %.4f" % (epoch, loss))
 
-    torch.save(best_model.state_dict, "dancedance_transform.pth")
+    torch.save(best_model, "dancedance_transform.pth")
 
 def transformer_trainer(model: nn.Module, train_data,
                         criterion, optimizer, epoch: int = 0):
