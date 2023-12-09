@@ -34,15 +34,15 @@ if __name__ == '__main__':
               for chart in simfile.values():
                   raw_data.append(chart[...])
 
-  best_model.eval()
+  model.eval()
 
-  X, y = make_data_from_dataset(raw_data, window_size=WINDOW_SIZE)
+  X, y = make_data_from_dataset(raw_data, normalize=True, window_size=WINDOW_SIZE)
 
   total_values = len(y)
   total_correct = 0
   with torch.no_grad():
       for x in X:
-          prediction = best_model(x)
+          prediction = model(x)
           if y == prediction:
               total_correct += 1
 
