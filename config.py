@@ -3,12 +3,12 @@ Contains things we import everywhere else.
 """
 import torch
 
-WINDOW_SIZE = 20
+WINDOW_SIZE = 5
 PAD_IDX = 0
 ONLY_PAD = True
 
 if ONLY_PAD:
-    VOCAB_SIZE = 10
+    VOCAB_SIZE = 11
 else:
     VOCAB_SIZE = 16
   

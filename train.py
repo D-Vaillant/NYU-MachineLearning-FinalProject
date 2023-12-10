@@ -161,8 +161,9 @@ if __name__ == "__main__":
             transformer_trainer(model, train_data,
                                 loss_fn, optimizer, epoch)
     else:
-        X, y = make_windowed_data(raw_data, normalize=True, window_size=WINDOW_SIZE)
+        loss_fn = nn.CrossEntropyLoss(reduction='sum')
         model = SimpleModel(vocab_size=VOCAB_SIZE)
         optimizer = optim.Adam(model.parameters())
+        X, y = make_windowed_data(raw_data, normalize=True, window_size=WINDOW_SIZE)
         simple_trainer(model, X, y, n_epochs, batch_size,
-                       loss_fn=nn.CrossEntropyLoss(reduction='sum'))
+                       loss_fn=loss_fn)
