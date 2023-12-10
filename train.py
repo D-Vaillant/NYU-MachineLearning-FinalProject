@@ -22,7 +22,8 @@ from models import SimpleModel, TransformerModel
 # 3. Multiple pause tokens - half beat, beat, long. Max of one between.
 # 4. Two pause tokens - long and short. Multiple tokens between inputs potentially.
 
-def simple_trainer(model, X, y, n_epochs, batch_size, loss_fn):
+def simple_trainer(model, X, y, n_epochs, batch_size, loss_fn,
+                   save_loc: str=f'dancedance_{WINDOW_SIZE}.path'):
     # Shuffle set to false due to M2 bug.
     loader = data.DataLoader(data.TensorDataset(X, y),
                              generator=torch.Generator(device=DEVICE),
@@ -51,7 +52,7 @@ def simple_trainer(model, X, y, n_epochs, batch_size, loss_fn):
                 )
             print("Epoch %d: Cross-entropy: %.4f" % (epoch, loss))
 
-    torch.save(best_model, "dancedance_transform.pth")
+    torch.save(best_model, save_loc)
 
 
 def transformer_trainer(model: nn.Module, train_data,
