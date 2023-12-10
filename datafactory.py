@@ -41,8 +41,7 @@ def numericize_input(seq: Iterable[int],
     # HAND: 15-8, 15-4, 15-2, 15-1; 7, 11, 13, 14
     output = sum((2**i) * v for i, v in enumerate(seq))
     if only_pad and output in [7, 11, 13, 14, 15]:
-        logging.fatal("HAND/QUAD found while processing")
-        return 99
+        raise Exception("HAND/QUAD found while processing")
     return output
 
 def yield_tokens(charts: Iterable[np.array]):
