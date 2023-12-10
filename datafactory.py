@@ -40,8 +40,15 @@ def numericize_input(seq: Iterable[int],
     # QUAD: All 4, 15.
     # HAND: 15-8, 15-4, 15-2, 15-1; 7, 11, 13, 14
     output = sum((2**i) * v for i, v in enumerate(seq))
-    if only_pad and output in [7, 11, 13, 14, 15]:
+    handquads = [7, 11, 13, 14, 15]
+    padmapper = {x: y for x, y in
+                 zip((set(range(1,16)) - set(handquads)), range(1, 11))}
+    if not only_pad:
+        pass
+    elif output in handquads:
         raise Exception("HAND/QUAD found while processing")
+    else:
+        output = padmapper[output]
     return output
 
 def yield_tokens(charts: Iterable[np.array]):
