@@ -9,13 +9,10 @@ import torch.utils.data as data
 import h5py
 import time
 import math
-from config import DEVICE, using_silicon, holdouts, WINDOW_SIZE
-from datafactory import make_data_from_dataset, get_symbols
+from config import DEVICE, using_silicon, holdouts, WINDOW_SIZE, VOCAB_SIZE
+from datafactory import make_windowed_data
 
 from models import SimpleModel, TransformerModel
-
-VOCAB_SIZE = 16
-
 
 
 # Lots of different ways to incorporate pause tokens, but all of them involve finding the beat gaps between notes.
@@ -55,6 +52,7 @@ def simple_trainer(model, X, y, n_epochs, batch_size):
             print("Epoch %d: Cross-entropy: %.4f" % (epoch, loss))
 
     torch.save(best_model, "dancedance_transform.pth")
+
 
 def transformer_trainer(model: nn.Module, train_data,
                         criterion, optimizer, epoch: int = 0):
@@ -105,6 +103,7 @@ def batchify(data: Tensor, bsz: int) -> Tensor:
     data = data.view(bsz, seq_len).t().contiguous()
     return data
 
+
 def get_batch(source: Tensor, i: int) -> Tuple[Tensor, Tensor]:
     """
     Args:
@@ -120,15 +119,18 @@ def get_batch(source: Tensor, i: int) -> Tuple[Tensor, Tensor]:
     target = source[i+1:i+1+seq_len].reshape(-1)
     return data, target
 
+
 if __name__ == "__main__":
     raw_data = []
+    collection_name = 'ddr'
     with h5py.File("data.hdf5") as hfile:
-        collection = hfile['fraxtil']
-        #print(h5_song_data.attrs['name'])
-        #print(h5_song_data.attrs['difficulty'])
+        # for chart in iterate_through_hfile(hfile, collection_name,
+        #                       skip_simfile=lambda s: s.attrs['title'] in holdouts[collection_name]):
+        #     raw_data.append(chart[...])
+        collection = hfile[collection_name]
         for pack in collection.values():
             for simfile in pack.values():
-                if simfile.attrs['title'] in holdouts['fraxtil']:
+                if simfile.attrs['title'] in holdouts[collection_name]:
                     continue
                 for chart in simfile.values():
                     raw_data.append(chart[...])
@@ -144,21 +146,21 @@ if __name__ == "__main__":
     nhead = 2  # number of heads in ``nn.MultiheadAttention``
     dropout = 0.2  # dropout probability
 
-    loss_fn = nn.CrossEntropyLoss(reduction="sum")
 
-    train_data = Tensor(get_symbols(raw_data[2])).int().to(DEVICE)
+    # train_data = Tensor(get_symbols(raw_data[2])).int().to(DEVICE)
 
     if False:
         model = TransformerModel(VOCAB_SIZE, emsize, nhead, d_hid, nlayers, dropout).to(DEVICE)
         lr = 5.0  # learning rate
         optimizer = torch.optim.SGD(model.parameters(), lr=lr)
         scheduler = torch.optim.lr_scheduler.StepLR(optimizer, 1.0, gamma=0.95)
+        loss_fn = nn.CrossEntropyLoss(reduction="sum")
 
         for epoch in range(n_epochs):
             transformer_trainer(model, train_data,
                                 loss_fn, optimizer, epoch)
     else:
-        X, y = make_data_from_dataset(raw_data, normalize=True, window_size=WINDOW_SIZE)
+        X, y = make_windowed_data(raw_data, normalize=True, window_size=WINDOW_SIZE)
         model = SimpleModel(vocab_size=VOCAB_SIZE)
         optimizer = optim.Adam(model.parameters())
         simple_trainer(model, X, y, n_epochs, batch_size)

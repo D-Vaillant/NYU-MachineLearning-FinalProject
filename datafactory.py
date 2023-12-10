@@ -2,30 +2,57 @@
 It's dirty work, but someone's gotta do it.
 """
 
-import simfile
-from typing import List, Iterable
+from typing import List, Generator,  Iterable
 import numpy as np
-from config import WINDOW_SIZE
+from config import WINDOW_SIZE, ONLY_PAD
 from itertools import islice
+from functools import partial
 import torch
+from torch import Tensor
+import logging
 
-def numericize_input(seq: Iterable[int]) -> int:
-    return sum((2**i) * v for i, v in enumerate(seq))
 
-def yield_tokens(charts: Iterable[np.array]) -> List[str]:
+PAD_IDX = 0
+special_symbols = ['<PAD>']
+
+# Some hfile functions.
+def iterate_through_hfile(hfile, collection_name: str,
+                          skip_simfile=lambda t: False,
+                          skip_chart=lambda t: False):
+    """ hfile: h5py.File, collection: collection name.
+    """
+    collection = hfile[collection_name]
+    #print(h5_song_data.attrs['name'])
+    #print(h5_song_data.attrs['difficulty'])
+    for pack in collection.values():
+        for simfile in pack.values():
+            if skip_simfile(simfile):
+                continue
+            for chart in simfile.values():
+                if skip_chart(chart):
+                    continue
+                else:
+                    yield chart
+
+def numericize_input(seq: Iterable[int],
+                     only_pad: bool=ONLY_PAD) -> int:
+    """ If ONLY_PAD, screams at you if you include a hand or a quad. """
+    # QUAD: All 4, 15.
+    # HAND: 15-8, 15-4, 15-2, 15-1; 7, 11, 13, 14
+    output = sum((2**i) * v for i, v in enumerate(seq))
+    if only_pad and output in [7, 11, 13, 14, 15]:
+        logging.fatal("HAND/QUAD found while processing")
+        return 99
+    return output
+
+def yield_tokens(charts: Iterable[np.array]):
+    """ Generator that yields integers. """
     for chart in charts:
         symbols = chart[['c0', 'c1', 'c2', 'c3']]
         for row in symbols:
             yield numericize_input(row)
 
-PAD_IDX = 0
-
-special_symbols = ['<PAD>']
-
-def numericize_input(seq: Iterable[int]) -> int:
-    return sum((2**i) * v for i, v in enumerate(seq))
-
-def get_symbols(song_data):
+def get_symbols(song_data: np.array) -> list[int]:
     symbols = song_data[['c0', 'c1', 'c2', 'c3']]
     return [numericize_input(row) for row in symbols]
 
@@ -45,21 +72,24 @@ def produce_windows(raw_data: Iterable, window_size: int):
       y_data.append(y)
     return X_data, y_data
 
-def make_data_from_dataset(datasets, normalize=False, window_size: int=WINDOW_SIZE):
+def make_windowed_data(datasets: Iterable[np.array],
+                       normalize: bool=False,
+                       window_size: int=WINDOW_SIZE) -> tuple[Tensor, Tensor]:
     X_data = []
     y_data = []
     for dataset in datasets:
         raw_data = get_symbols(dataset)
-        raw_vocab = [i for i in range(1,16)]
+        maxsym = max(raw_data)
+        raw_vocab = [i for i in range(1, maxsym)]
         new_X_data, new_y_data = produce_windows(raw_data, window_size)
         X_data += new_X_data
         y_data += new_y_data
     # reshape X to be [samples, time steps, features]
-    X = torch.tensor(X_data, dtype=torch.float32).reshape(len(X_data), window_size, 1)
+    X = Tensor(X_data, dtype=torch.float32).reshape(len(X_data), window_size, 1)
     if normalize:
-        X = X / float(len(raw_vocab))  # Normalize.
+        X = X / float(maxsym)  # Normalize.
     else:
         X = X.int()
-    y = torch.tensor(y_data)
+    y = Tensor(y_data)
     print(X.shape, y.shape)
     return X, y
