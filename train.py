@@ -22,7 +22,7 @@ from models import SimpleModel, TransformerModel
 # 3. Multiple pause tokens - half beat, beat, long. Max of one between.
 # 4. Two pause tokens - long and short. Multiple tokens between inputs potentially.
 
-def simple_trainer(model, X, y, n_epochs, batch_size):
+def simple_trainer(model, X, y, n_epochs, batch_size, loss_fn):
     # Shuffle set to false due to M2 bug.
     loader = data.DataLoader(data.TensorDataset(X, y),
                              generator=torch.Generator(device=DEVICE),
@@ -163,4 +163,5 @@ if __name__ == "__main__":
         X, y = make_windowed_data(raw_data, normalize=True, window_size=WINDOW_SIZE)
         model = SimpleModel(vocab_size=VOCAB_SIZE)
         optimizer = optim.Adam(model.parameters())
-        simple_trainer(model, X, y, n_epochs, batch_size)
+        simple_trainer(model, X, y, n_epochs, batch_size,
+                       loss_fn=nn.CrossEntropyLoss(reduction='sum'))
