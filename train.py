@@ -9,7 +9,7 @@ import torch.utils.data as data
 import h5py
 import time
 import math
-from config import DEVICE, using_silicon, holdouts, WINDOW_SIZE, VOCAB_SIZE
+from config import DEVICE, using_silicon, holdouts, WINDOW_SIZE, VOCAB_SIZE, COLLECTION_NAME
 from datafactory import make_windowed_data
 
 from models import SimpleModel, TransformerModel
@@ -23,7 +23,7 @@ from models import SimpleModel, TransformerModel
 # 4. Two pause tokens - long and short. Multiple tokens between inputs potentially.
 
 def simple_trainer(model, X, y, n_epochs, batch_size, loss_fn,
-                   save_loc: str=f'dancedance_{WINDOW_SIZE}.pth'):
+                   save_loc: str=f'dancedance_{COLLECTION_NAME}_{WINDOW_SIZE}.pth'):
     # Shuffle set to false due to M2 bug.
     loader = data.DataLoader(data.TensorDataset(X, y),
                              generator=torch.Generator(device=DEVICE),
@@ -124,15 +124,14 @@ def get_batch(source: Tensor, i: int) -> Tuple[Tensor, Tensor]:
 
 if __name__ == "__main__":
     raw_data = []
-    collection_name = 'ddr'
     with h5py.File("data.hdf5") as hfile:
         # for chart in iterate_through_hfile(hfile, collection_name,
         #                       skip_simfile=lambda s: s.attrs['title'] in holdouts[collection_name]):
         #     raw_data.append(chart[...])
-        collection = hfile[collection_name]
+        collection = hfile[COLLECTION_NAME]
         for pack in collection.values():
             for simfile in pack.values():
-                if simfile.attrs['title'] in holdouts[collection_name]:
+                if simfile.attrs['title'] in holdouts[COLLECTION_NAME]:
                     continue
                 for chart in simfile.values():
                     raw_data.append(chart[...])
@@ -148,10 +147,8 @@ if __name__ == "__main__":
     nhead = 2  # number of heads in ``nn.MultiheadAttention``
     dropout = 0.2  # dropout probability
 
-
-    # train_data = Tensor(get_symbols(raw_data[2])).int().to(DEVICE)
-
     if False:
+        # Ultimately never managed to get this to work. Ah, well.
         model = TransformerModel(VOCAB_SIZE, emsize, nhead, d_hid, nlayers, dropout).to(DEVICE)
         lr = 5.0  # learning rate
         optimizer = torch.optim.SGD(model.parameters(), lr=lr)

@@ -5,6 +5,7 @@ import os
 import torch
 
 WINDOW_SIZE = int(os.getenv('WINDOW_SIZE', 5))
+COLLECTION_NAME = os.getenv('COLLECTION_NAME', 'ddr')
 PAD_IDX = 0
 ONLY_PAD = True
 
