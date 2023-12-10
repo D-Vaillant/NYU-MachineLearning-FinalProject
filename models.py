@@ -1,7 +1,8 @@
+import math
+
 import torch
 from torch import nn, Tensor
-import math
-from config import DEVICE, PAD_IDX
+
 
 class SimpleModel(nn.Module):
     def __init__(self, vocab_size, dropout=0.2):

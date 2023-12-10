@@ -1,18 +1,16 @@
 """ datafactory.py
 It's dirty work, but someone's gotta do it.
 """
-
-from typing import Iterable
-import numpy as np
-from config import WINDOW_SIZE, ONLY_PAD
+import logging
 from itertools import islice
+from typing import Iterable
+
+import numpy as np
 import torch
 from torch import Tensor
-import logging
 
+from config import WINDOW_SIZE, ONLY_PAD
 
-PAD_IDX = 0
-special_symbols = ['<PAD>']
 
 # Some hfile functions.
 def iterate_through_hfile(hfile, collection_name: str,

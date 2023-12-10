@@ -1,17 +1,18 @@
 # train.py
+import time
+import math
 from typing import Iterable, Tuple
 from itertools import islice
+
 import numpy as np
-import torch
 from torch import nn, Tensor
+import torch
 import torch.optim as optim
 import torch.utils.data as data
 import h5py
-import time
-import math
+
 from config import DEVICE, using_silicon, holdouts, WINDOW_SIZE, VOCAB_SIZE, COLLECTION_NAME
 from datafactory import make_windowed_data
-
 from models import SimpleModel, TransformerModel
 
 
@@ -23,7 +24,7 @@ from models import SimpleModel, TransformerModel
 # 4. Two pause tokens - long and short. Multiple tokens between inputs potentially.
 
 def simple_trainer(model, X, y, n_epochs, batch_size, loss_fn,
-                   save_loc: str=f'dancedance_{COLLECTION_NAME}_{WINDOW_SIZE}.pth'):
+                   save_loc: str=f'saved_models/dancedance_{COLLECTION_NAME}_{WINDOW_SIZE}.pth'):
     # Shuffle set to false due to M2 bug.
     loader = data.DataLoader(data.TensorDataset(X, y),
                              generator=torch.Generator(device=DEVICE),

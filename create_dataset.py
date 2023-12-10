@@ -1,6 +1,9 @@
+import logging
+from pathlib import Path
+from itertools import islice
+
 import h5py
 import numpy as np
-import logging
 from simfile.dir import SimfilePack
 from simfile.base import BaseSimfile as Simfile
 from simfile.base import BaseChart as Chart
@@ -9,9 +12,7 @@ from simfile.notes.count import count_grouped_notes
 from simfile.notes.group import group_notes, SameBeatNotes
 from simfile.timing import TimingData
 from simfile.timing.engine import TimingEngine
-from pathlib import Path
-from itertools import islice
-from typing import Generator
+
 
 overcollection_folder: Path = Path('raw_data')
 permissible_notetypes = {NoteType.TAP, NoteType.HOLD_HEAD, NoteType.ROLL_HEAD, NoteType.TAIL}
@@ -77,7 +78,6 @@ if __name__ == "__main__":
     Path(dataset_file).unlink(missing_ok=True)
     datasets = ['fraxtil', 'gpop', 'ddr']
     for ds in datasets:
-        if ds != 'ddr': continue
         dataset_dir = overcollection_folder / ds
         folders = [SimfilePack(f) for f in dataset_dir.iterdir() if f.is_dir()]
         for folder in folders:
