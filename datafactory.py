@@ -2,11 +2,10 @@
 It's dirty work, but someone's gotta do it.
 """
 
-from typing import List, Generator,  Iterable
+from typing import Iterable
 import numpy as np
 from config import WINDOW_SIZE, ONLY_PAD
 from itertools import islice
-from functools import partial
 import torch
 from torch import Tensor
 import logging

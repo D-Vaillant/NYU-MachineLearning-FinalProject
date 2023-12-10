@@ -8,25 +8,22 @@ import torch.nn as nn
 from models import SimpleModel
 from datafactory import make_windowed_data
 import h5py
-from config import WINDOW_SIZE, DEVICE, VOCAB_SIZE
+from config import WINDOW_SIZE, DEVICE, VOCAB_SIZE, holdouts
 
-holdouts = {
-    'fraxtil': ['Let It Go', 'Mosh Pit', 'Crazy', 'Blue']
-}
-
-model = SimpleModel(vocab_size=16)
-state_dict = torch.load("dancedance.pth", map_location=DEVICE)
+model = SimpleModel(vocab_size=VOCAB_SIZE)
+state_dict = torch.load(f"dancedance_{WINDOW_SIZE}.pth", map_location=DEVICE)
 best_model = model.load_state_dict(state_dict=state_dict)
 
 raw_data = []
 
 if __name__ == '__main__':
+  collection_name = 'ddr'
   with h5py.File("data.hdf5") as hfile:
-      collection = hfile['fraxtil']
+      collection = hfile[collection_name]
       for pack in collection.values():
           for simfile in pack.values():
               # Oof, not my favorite way of doing this.
-              if simfile.attrs['title'] not in holdouts['fraxtil']:
+              if simfile.attrs['title'] not in holdouts[collection_name]:
                   continue
               for chart in simfile.values():
                   raw_data.append(chart[...])

@@ -1,9 +1,10 @@
 """ config.py
 Contains things we import everywhere else.
 """
+import os
 import torch
 
-WINDOW_SIZE = 5
+WINDOW_SIZE = int(os.getenv('WINDOW_SIZE', 5))
 PAD_IDX = 0
 ONLY_PAD = True
 

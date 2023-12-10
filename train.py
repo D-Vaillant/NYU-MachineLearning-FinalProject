@@ -23,7 +23,7 @@ from models import SimpleModel, TransformerModel
 # 4. Two pause tokens - long and short. Multiple tokens between inputs potentially.
 
 def simple_trainer(model, X, y, n_epochs, batch_size, loss_fn,
-                   save_loc: str=f'dancedance_{WINDOW_SIZE}.path'):
+                   save_loc: str=f'dancedance_{WINDOW_SIZE}.pth'):
     # Shuffle set to false due to M2 bug.
     loader = data.DataLoader(data.TensorDataset(X, y),
                              generator=torch.Generator(device=DEVICE),
@@ -56,7 +56,8 @@ def simple_trainer(model, X, y, n_epochs, batch_size, loss_fn,
 
 
 def transformer_trainer(model: nn.Module, train_data,
-                        criterion, optimizer, epoch: int = 0):
+                        criterion, optimizer, scheduler,
+                        epoch: int = 0):
     model.train()
     log_interval = 200
 
@@ -159,7 +160,8 @@ if __name__ == "__main__":
 
         for epoch in range(n_epochs):
             transformer_trainer(model, train_data,
-                                loss_fn, optimizer, epoch)
+                                loss_fn, optimizer, scheduler,
+                                epoch)
     else:
         loss_fn = nn.CrossEntropyLoss(reduction='sum')
         model = SimpleModel(vocab_size=VOCAB_SIZE)
