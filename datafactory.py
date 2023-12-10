@@ -85,11 +85,11 @@ def make_windowed_data(datasets: Iterable[np.array],
         X_data += new_X_data
         y_data += new_y_data
     # reshape X to be [samples, time steps, features]
-    X = Tensor(X_data, dtype=torch.float32).reshape(len(X_data), window_size, 1)
+    X = torch.tensor(X_data, dtype=torch.float32).reshape(len(X_data), window_size, 1)
     if normalize:
         X = X / float(maxsym)  # Normalize.
     else:
         X = X.int()
-    y = Tensor(y_data)
+    y = torch.tensor(y_data)
     print(X.shape, y.shape)
     return X, y
