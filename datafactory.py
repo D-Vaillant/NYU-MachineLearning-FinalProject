@@ -9,7 +9,7 @@ import numpy as np
 import torch
 from torch import Tensor
 
-from config import WINDOW_SIZE, ONLY_PAD
+from config import WINDOW_SIZE, ONLY_PAD, DEVICE
 
 
 # Some hfile functions.
@@ -88,11 +88,12 @@ def make_windowed_data(datasets: Iterable[np.array],
         X_data += new_X_data
         y_data += new_y_data
     # reshape X to be [samples, time steps, features]
-    X = torch.tensor(X_data, dtype=torch.float32).reshape(len(X_data), window_size, 1)
+    X = torch.tensor(X_data, dtype=torch.float32, device=DEVICE).reshape(len(X_data), window_size, 1)
+    X.to(DEVICE)
     if normalize:
         X = X / float(maxsym)  # Normalize.
     else:
         X = X.int()
-    y = torch.tensor(y_data)
+    y = torch.tensor(y_data, device=DEVICE)
     print(X.shape, y.shape)
     return X, y

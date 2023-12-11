@@ -24,7 +24,7 @@ class TwoLayerLSTM(nn.Module):
     def __init__(self, vocab_size, dropout=0.2):
         super().__init__()
         self.lstm = nn.LSTM(input_size=1, hidden_size=128, num_layers=2,
-                            batch_first=True, dropout=0.2)
+                            batch_first=True, dropout=dropout)
         self.dropout = nn.Dropout(dropout)
         self.linear = nn.Linear(128, vocab_size)
 
