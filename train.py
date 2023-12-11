@@ -154,6 +154,10 @@ if __name__ == "__main__":
 
     loss_fn = nn.CrossEntropyLoss(reduction='sum')
     model = Model(vocab_size=VOCAB_SIZE)
+    if torch.cuda.device_count() > 1:
+        print(f"Using {torch.cuda.device_count()} GPUs.")
+        model = nn.DataParallel(model)
+    model.to(device)
     optimizer = optim.Adam(model.parameters())
     X, y = make_windowed_data(raw_data, normalize=True, window_size=WINDOW_SIZE)
     simple_trainer(model, X, y, n_epochs, batch_size,
