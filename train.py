@@ -3,6 +3,7 @@ import time
 import math
 from typing import Iterable, Tuple
 from itertools import islice
+from argparse import ArgumentParser
 
 import numpy as np
 from torch import nn, Tensor
@@ -13,7 +14,7 @@ import h5py
 
 from config import DEVICE, using_silicon, holdouts, WINDOW_SIZE, VOCAB_SIZE, COLLECTION_NAME
 from datafactory import make_windowed_data
-from models import SimpleModel, TransformerModel
+from models import SimpleModel, TwoLayerLSTM
 
 
 # Lots of different ways to incorporate pause tokens, but all of them involve finding the beat gaps between notes.
@@ -124,6 +125,14 @@ def get_batch(source: Tensor, i: int) -> Tuple[Tensor, Tensor]:
 
 
 if __name__ == "__main__":
+    parser = ArgumentParser()
+    parser.add_argument('--model', choices=['single', 'double'], default='single')
+    args = parser.parse_args()
+    if args.model == 'single':
+        Model = SimpleModel
+    elif args.model == 'double':
+        Model = TwoLayerLSTM
+
     raw_data = []
     with h5py.File("data.hdf5") as hfile:
         # for chart in iterate_through_hfile(hfile, collection_name,
@@ -141,29 +150,11 @@ if __name__ == "__main__":
 
     n_epochs = 40
     batch_size = 128
-    ntokens = VOCAB_SIZE  # size of vocabulary
-    emsize = 10  # embedding dimension
-    d_hid = 200  # dimension of the feedforward network model in ``nn.TransformerEncoder``
-    nlayers = 2  # number of ``nn.TransformerEncoderLayer`` in ``nn.TransformerEncoder``
-    nhead = 2  # number of heads in ``nn.MultiheadAttention``
-    dropout = 0.2  # dropout probability
+    save_loc = 'saved_models/{args.model}_dancedance_{COLLECTION_NAME}_{WINDOW_SIZE}.pth'
 
-    if False:
-        # Ultimately never managed to get this to work. Ah, well.
-        model = TransformerModel(VOCAB_SIZE, emsize, nhead, d_hid, nlayers, dropout).to(DEVICE)
-        lr = 5.0  # learning rate
-        optimizer = torch.optim.SGD(model.parameters(), lr=lr)
-        scheduler = torch.optim.lr_scheduler.StepLR(optimizer, 1.0, gamma=0.95)
-        loss_fn = nn.CrossEntropyLoss(reduction="sum")
-
-        for epoch in range(n_epochs):
-            transformer_trainer(model, train_data,
-                                loss_fn, optimizer, scheduler,
-                                epoch)
-    else:
-        loss_fn = nn.CrossEntropyLoss(reduction='sum')
-        model = SimpleModel(vocab_size=VOCAB_SIZE)
-        optimizer = optim.Adam(model.parameters())
-        X, y = make_windowed_data(raw_data, normalize=True, window_size=WINDOW_SIZE)
-        simple_trainer(model, X, y, n_epochs, batch_size,
-                       loss_fn=loss_fn)
+    loss_fn = nn.CrossEntropyLoss(reduction='sum')
+    model = Model(vocab_size=VOCAB_SIZE)
+    optimizer = optim.Adam(model.parameters())
+    X, y = make_windowed_data(raw_data, normalize=True, window_size=WINDOW_SIZE)
+    simple_trainer(model, X, y, n_epochs, batch_size,
+                    loss_fn=loss_fn, save_loc=save_loc)

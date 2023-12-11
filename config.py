@@ -4,10 +4,12 @@ Contains things we import everywhere else.
 import os
 import torch
 
+
 WINDOW_SIZE = int(os.getenv('WINDOW_SIZE', 5))
 COLLECTION_NAME = os.getenv('COLLECTION_NAME', 'ddr')
 PAD_IDX = 0
-ONLY_PAD = True
+
+ONLY_PAD = COLLECTION_NAME == 'ddr'
 
 if ONLY_PAD:
     VOCAB_SIZE = 11

@@ -20,6 +20,22 @@ class SimpleModel(nn.Module):
         x = self.linear(self.dropout(x))
         return x
 
+class TwoLayerLSTM(nn.Module):
+    def __init__(self, vocab_size, dropout=0.2):
+        super().__init__()
+        self.lstm = nn.LSTM(input_size=1, hidden_size=128, num_layers=2,
+                            batch_first=True, dropout=0.2)
+        self.dropout = nn.Dropout(dropout)
+        self.linear = nn.Linear(128, vocab_size)
+
+    def forward(self, x):
+        x, _ = self.lstm(x)
+        # take only the last output
+        x = x[:, -1, :]
+        # produce output
+        x = self.linear(self.dropout(x))
+        return x
+
 
 class TransformerModel(nn.Module):
     def __init__(self, ntoken: int, d_model: int, nhead: int, d_hid: int,

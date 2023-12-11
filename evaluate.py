@@ -4,18 +4,16 @@ Used to... evaluate...
 """
 import os
 import numpy as np
+from argparse import ArgumentParser
 
 import h5py
 import torch
 import torch.nn as nn
 
-from models import SimpleModel
+from models import SimpleModel, TwoLayerLSTM
 from datafactory import make_windowed_data
 from config import WINDOW_SIZE, DEVICE, VOCAB_SIZE, COLLECTION_NAME, holdouts
 
-model = SimpleModel(vocab_size=VOCAB_SIZE)
-state_dict = torch.load(f"dancedance_{COLLECTION_NAME}_{WINDOW_SIZE}.pth", map_location=DEVICE)
-best_model = model.load_state_dict(state_dict=state_dict)
 
 
 def evaluate(model, X, y):
@@ -30,10 +28,22 @@ def evaluate(model, X, y):
 
 
 if __name__ == '__main__':
+    parser = ArgumentParser()
+    parser.add_argument('--model', choices=['single', 'double'], default='single')
+    args = parser.parse_args()
+    if args.model == 'single':
+        Model = SimpleModel
+    elif args.model == 'double':
+        Model = TwoLayerLSTM
+    model = Model(vocab_size=VOCAB_SIZE)
+    state_dict = torch.load(f"saved_models/{args.model}_dancedance_{COLLECTION_NAME}_{WINDOW_SIZE}.pth", map_location=DEVICE)
+    best_model = model.load_state_dict(state_dict=state_dict)
+
+
     raw_test_data = []
     raw_train_data = []
     collection_name = COLLECTION_NAME
-    skip_train_eval = os.getenv("EVAL_TRAIN", None) is not None
+    skip_train_eval = True
 
     print(f"Evaluating {COLLECTION_NAME} with window size {WINDOW_SIZE}.")
     with h5py.File("data.hdf5") as hfile:
