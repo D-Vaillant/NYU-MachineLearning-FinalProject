@@ -5,6 +5,7 @@ Used to... evaluate...
 import os
 import numpy as np
 from argparse import ArgumentParser
+from collections import OrderedDict
 
 import h5py
 import torch
@@ -30,14 +31,23 @@ def evaluate(model, X, y):
 if __name__ == '__main__':
     parser = ArgumentParser()
     parser.add_argument('--model', choices=['single', 'double'], default='single')
+    parser.add_argument('--window', choices=[5,15,25], type=int)
     args = parser.parse_args()
     if args.model == 'single':
         Model = SimpleModel
     elif args.model == 'double':
         Model = TwoLayerLSTM
+    WINDOW_SIZE = args.window
     model = Model(vocab_size=VOCAB_SIZE)
     state_dict = torch.load(f"saved_models/{args.model}_dancedance_{COLLECTION_NAME}_{WINDOW_SIZE}.pth", map_location=DEVICE)
-    best_model = model.load_state_dict(state_dict=state_dict)
+
+    # Loading a state dict that was made using parallelized data, onto a single device.
+    # Sigh.
+    new_state_dict = OrderedDict()
+    for k, v in state_dict.items():
+        k = k.replace('module.', '')
+        new_state_dict[k] = v
+    best_model = model.load_state_dict(state_dict=new_state_dict)
 
 
     raw_test_data = []

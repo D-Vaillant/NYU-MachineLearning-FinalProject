@@ -127,11 +127,14 @@ def get_batch(source: Tensor, i: int) -> Tuple[Tensor, Tensor]:
 if __name__ == "__main__":
     parser = ArgumentParser()
     parser.add_argument('--model', choices=['single', 'double'], default='single')
+    parser.add_argument('--window', default=5, type=int)
     args = parser.parse_args()
     if args.model == 'single':
         Model = SimpleModel
     elif args.model == 'double':
         Model = TwoLayerLSTM
+
+    WINDOW_SIZE = args.window
 
     raw_data = []
     with h5py.File("data.hdf5") as hfile:
